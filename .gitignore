@@ -1,0 +1,5 @@
+vendor
+.orig
+coverage
+*.zip
+infrastructure/terraform/.terraform

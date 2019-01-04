@@ -1,0 +1,3 @@
+bucket = "credo-qa-terraform"
+dynamodb_table  = "credo_qa_terraform_locks"
+region = "us-east-2"

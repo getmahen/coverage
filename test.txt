@@ -1,0 +1,70 @@
+/// TO GET JWT
+getpostmantoken --expire=1d --service=coverage | pbcopy
+
+
+curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwb3N0bWFuIiwiY2FsbGVlQWdlbnRBdWQiOiJjb3ZlcmFnZSIsImV4cCI6MTU0NzA1NjI2OCwiaWF0IjoxNTQ2NDUxNDY4fQ.ZhHEp-UomFcS_6HDig0Kv7isN3Md0iZhtrOGU8D_-fZP98U9npWPQ2dOxpnDURDqFvkcWtIbwaF9LjQCtOwtD6bKfxIbUVrH4OzAFCUd_O_xCZV7ULwv5VYu6E7z9vCCjXKoRxKH-uYOHcYI3j4u5cZFCZQeDlKORCnpucfBoZx8cnJtZyAFuONyC9-S9qqps6ZOk53B8qUNZ3snELvmz5zLwLnDd4jIzIj21FsvPwGX7yZzA4tLPVjOQN9om_ncFa33p1nm8YZc1r3UdbplI_htZbswb5m9Zy1TLOQjZd26zJJHD3UbWGrTy9pu-lJfetJDJ9DAItQeCPpH-OiPwA" \
+https://credoqa.dev/coverage/v1/coveragecheck/?zipcode=94538&carrierid=2
+
+
+curl -X GET \
+  'https://qa-api.credomobile.com/coverage/v1/coveragecheck?zipcode=94538&carrierid=2' \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwb3N0bWFuIiwiY2FsbGVlQWdlbnRBdWQiOiJjb3ZlcmFnZSIsImlhdCI6MTUzOTExNDAxNiwiZXhwIjoxNTcwNjcxNjE2fQ.G_Y-Mae6GNvlf9Jly6SLjlE3BTVQxqllT4WLK4TccPNPm2B4AYYQ0g_Ep3JIWym4YDf8rgcS6hqGrWCTglfeUeynNzG60TQB73h6NZBQ5wVngLM6yTdxUMZIBkmNwFIO0-pBnWY7fMBB4IrxZWyCNKq88kRk7XMDAJpl0LtHQ8Dkw9S7AMnsjH1yPQU9auXKtirKpAZiEHVgCIEAZ81ZRNOYvidHRrdejGA6Ar2ry3RVebAKO_Kpw9PSyhkiEA2IHuILkjrexj9Hbf0x_rBHBOXvEtGMJ5qhl0X5kACk5IeqJ31nbatexxv7SexNGrlki0_lU5ZBYJHXrF8OZT1LGA' \
+  -H 'Content-Type: application/json' \
+  -H 'Postman-Token: f767d9ab-b650-4d57-9fd7-0e13427a1a77' \
+  -H 'cache-control: no-cache' \
+  -H 'x-api-key: JuT33brJpR4shKXBuVIIf4xeGnvTTvx6bZGLkvP6' \
+  -H 'x-trackingid: 565242ac-a5d7-4377-a88f-adc0d8cdd3ea'
+
+
+  curl -X GET \
+  'https://credoqa.dev/coverage/v1/coveragecheck?zipcode=94538&carrierid=2' \
+  -H 'Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwb3N0bWFuIiwiY2FsbGVlQWdlbnRBdWQiOiJjb3ZlcmFnZSIsImlhdCI6MTUzOTExNDAxNiwiZXhwIjoxNTcwNjcxNjE2fQ.G_Y-Mae6GNvlf9Jly6SLjlE3BTVQxqllT4WLK4TccPNPm2B4AYYQ0g_Ep3JIWym4YDf8rgcS6hqGrWCTglfeUeynNzG60TQB73h6NZBQ5wVngLM6yTdxUMZIBkmNwFIO0-pBnWY7fMBB4IrxZWyCNKq88kRk7XMDAJpl0LtHQ8Dkw9S7AMnsjH1yPQU9auXKtirKpAZiEHVgCIEAZ81ZRNOYvidHRrdejGA6Ar2ry3RVebAKO_Kpw9PSyhkiEA2IHuILkjrexj9Hbf0x_rBHBOXvEtGMJ5qhl0X5kACk5IeqJ31nbatexxv7SexNGrlki0_lU5ZBYJHXrF8OZT1LGA' \
+  -H 'Content-Type: application/json' \
+  -H 'Postman-Token: f767d9ab-b650-4d57-9fd7-0e13427a1a77' \
+  -H 'cache-control: no-cache' \
+  -H 'x-api-key: JuT33brJpR4shKXBuVIIf4xeGnvTTvx6bZGLkvP6' \
+  -H 'x-trackingid: 565242ac-a5d7-4377-a88f-adc0d8cdd3ea'
+
+
+//TODO
+- Move the Valdation logic to the handler level from Service layer - (DONE)
+- Fix the Validator to accept (w http.ResponseWriter, r *http.Request) as the func signature
+- Add more table driven tests for Validator
+- Check if the Frink's Validator can be used instead
+- JWT Auth
+- Implement Datadog/X-ray
+
+
+//DYNAMODB ARN
+arn::aws::dynamodb/coverage
+
+
+///DYNAMODB LOCAL CLI COMMANDS
+aws dynamodb create-table \
+    --table-name Music \
+    --attribute-definitions \
+        AttributeName=Artist,AttributeType=S \
+        AttributeName=SongTitle,AttributeType=S \
+    --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --endpoint-url http://localhost:8000
+
+
+
+aws dynamodb put-item \
+--table-name Music  \
+--item \
+    '{"Artist": {"S": "No One You Know"}, "SongTitle": {"S": "Call Me Today"}, "AlbumTitle": {"S": "Somewhat Famous"}}' \
+--return-consumed-capacity TOTAL \
+--endpoint-url http://localhost:8000
+
+aws dynamodb put-item \
+    --table-name Music \
+    --item '{ \
+        "Artist": {"S": "Acme Band"}, \
+        "SongTitle": {"S": "Happy Day"}, \
+        "AlbumTitle": {"S": "Songs About Life"} }' \
+    --return-consumed-capacity TOTAL \
+    --endpoint-url http://localhost:8000
+
+aws dynamodb query --table-name Music --key-conditions file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/dynamoquery.json --endpoint-url http://localhost:8000
