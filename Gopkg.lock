@@ -50,7 +50,7 @@
   version = "v1.8.0"
 
 [[projects]]
-  digest = "1:5c4480b9db937c9017df574cf0aa30e65d2a070b3c6f712a46641dfa00b02d9c"
+  digest = "1:f63a35efce445386b59c6f205cb6b733b4dfbf17fa3e6269c2a240484e0c41fa"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -85,6 +85,7 @@
     "private/protocol/rest",
     "private/protocol/xml/xmlutil",
     "service/dynamodb",
+    "service/dynamodb/dynamodbattribute",
     "service/dynamodb/dynamodbiface",
     "service/secretsmanager",
     "service/secretsmanager/secretsmanageriface",
@@ -103,6 +104,14 @@
   pruneopts = "UT"
   revision = "5e023998abc6065e7a1ba4efb4c66fbd5eb7163a"
   version = "v0.2.0"
+
+[[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:060e2ff7ee3e51b4a0fadf46308033bfe3b8030af6a8078ec26916e2e9b2fdc3"
@@ -175,6 +184,14 @@
   version = "v0.8.0"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:2e76a73cb51f42d63a2a1a85b3dc5731fd4faf6821b434bd0ef2c099186031d6"
   name = "github.com/rs/xid"
   packages = ["."]
@@ -195,6 +212,25 @@
   pruneopts = "UT"
   revision = "8747b7b3a51b5d08ee7ac50eaf4869edaf9f714a"
   version = "v1.11.0"
+
+[[projects]]
+  digest = "1:ac83cf90d08b63ad5f7e020ef480d319ae890c208f8524622a2f3136e2686b02"
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
+
+[[projects]]
+  digest = "1:1f5ea8411b6304b61488d343f038f05efc287207bdee65e410a9c0d4f0e7d8c6"
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "mock",
+  ]
+  pruneopts = "UT"
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   digest = "1:2cab41f59638fdb77dda96ab4f9b5860ef30f48967557254eba127e43c756f2e"
@@ -271,9 +307,13 @@
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/dynamodb",
+    "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
     "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface",
+    "github.com/go-chi/chi",
     "github.com/rs/zerolog",
     "github.com/rs/zerolog/log",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/mock",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

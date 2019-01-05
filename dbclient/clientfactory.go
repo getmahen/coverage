@@ -28,7 +28,7 @@ type clientFactoryImpl struct {
 func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) ClientFactory {
 	//awsSession, err := session.NewSession()
 	config := &aws.Config{
-		Region:   aws.String("us-west-2"),
+		Region:   aws.String("us-east-2"),
 		Endpoint: aws.String("http://localhost:8000"),
 	}
 	awsSession, err := session.NewSession(config)
@@ -47,9 +47,10 @@ func (c clientFactoryImpl) GetDbClient(t entity.CarrierType) (Client, error) {
 	switch t {
 	case entity.Sprint:
 		//return SprintDbClient{TableName: "sprint_coverage", Logger: c.logger, Connection: c.connection}, nil
-		return NewSprintClient("Music", c.logger, c.connection), nil
+		return NewSprintClient("sprint_coverage", c.logger, c.connection), nil
 	case entity.Verizon:
-		return VerizonDbClient{TableName: "verizon_coverage", Logger: c.logger, Connection: c.connection}, nil
+		//return VerizonDbClient{TableName: "verizon_coverage", Logger: c.logger, Connection: c.connection}, nil
+		return NewVerizonClient("verizon_coverage", c.logger, c.connection), nil
 	default:
 		//if type is invalid, return an error
 		return nil, errors.New("Invalid Carrier Type")

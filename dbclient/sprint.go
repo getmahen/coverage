@@ -2,87 +2,110 @@ package dbclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
+	"strconv"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/rs/zerolog"
 )
 
 type SprintDbClient struct {
-	TableName  string
-	Logger     *zerolog.Logger
-	Connection dynamodbiface.DynamoDBAPI
+	tableName  string
+	logger     *zerolog.Logger
+	connection dynamodbiface.DynamoDBAPI
 }
 
-type Item struct {
-	Artist    string `json:"artist"`
-	SongTitle string `json:"songtitle"`
+type sprintCoverageData struct {
+	CsaLeaf     string `json:"CSA_Leaf"`
+	CurPctCov   string `json:"Cur_Pct_Cov"`
+	LTE4GPctCov string `json:"LTE_4G_PctCov"`
 }
 
 func NewSprintClient(tableName string, logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) SprintDbClient {
-	return SprintDbClient{TableName: tableName, Logger: logger, Connection: connection}
+	return SprintDbClient{tableName: tableName, logger: logger, connection: connection}
 }
 
 func (s SprintDbClient) VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error) {
-	s.Logger.Info().Msgf("*** IN SPRINT DB CLIENT VerifyCoverage() ***")
+	s.logger.Info().Msgf("*** IN SPRINT DB CLIENT VerifyCoverage() ***")
 
-	result, err := s.Connection.ListTables(&dynamodb.ListTablesInput{})
+	data, err := s.getData(ctx, zipCode)
 	if err != nil {
-		log.Println(err)
-		return false, err
-	} else {
-		fmt.Println("Number of tables:", len(result.TableNames))
-		for _, table := range result.TableNames {
-			fmt.Println("Name:", table)
-		}
+		return false, nil
 	}
+	fmt.Println("CsaLeaf: ", data.CsaLeaf)
+	fmt.Println("CurPctCov: ", data.CurPctCov)
+	fmt.Println("LTE4GPctCov: ", data.LTE4GPctCov)
 
-	// req := &dynamodb.DescribeTableInput{
-	// 	TableName: aws.String("music"),
-	// }
-	// result, err := s.Connection.DescribeTable(req)
-	// if err != nil {
-	// 	fmt.Printf("%s", err)
-	// }
-	// table := result.Table
-	// fmt.Printf("done", table)
-
-	// input := &dynamodb.GetItemInput{
-	// 	TableName: aws.String("Music"),
-	// 	Key: map[string]*dynamodb.AttributeValue{
-	// 		"artist": {S: aws.String("No One You Know")},
-	// 	},
-	// }
-
-	// _, err := s.Connection.GetItemWithContext(ctx, input)
-	// if err != nil {
-	// 	s.Logger.Fatal().Err(err).Msg("failed to query dynamodb")
-
-	// 	return false, err
-	// }
-
-	//item := Item{}
-	// err = dynamodbattribute.UnmarshalMap(result.Item, &item)
-
-	// if err != nil {
-	// 	panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
-	// }
-
-	// if item.Artist == "" {
-	// 	fmt.Println("Could not find 'The Big New Movie' (2015)")
-	// 	return false, nil
-	// }
-
-	// fmt.Println("Found item:")
-	// fmt.Println("Artist:  ", item.Artist)
-	// fmt.Println("SongTitle: ", item.SongTitle)
-
-	return true, nil
+	covered := s.isZipCovered(zipCode, data)
+	return covered, nil
 }
 
 func (s SprintDbClient) GetCsa(ctx context.Context, zipCode string) (string, error) {
-	s.Logger.Info().Msgf("*** IN SPRINT DB CLIENT GetCsa() ***")
-	return "fakeCsa", nil
+	s.logger.Info().Msgf("*** IN SPRINT DB CLIENT GetCsa() for zipcode %s***", zipCode)
+
+	data, err := s.getData(ctx, zipCode)
+	if err != nil {
+		return "", nil
+	}
+	return data.CsaLeaf, nil
+}
+
+func (s SprintDbClient) getData(ctx context.Context, zipCode string) (sprintCoverageData, error) {
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(s.tableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"ZIP": {
+				S: aws.String(zipCode),
+			},
+		},
+	}
+
+	result, err := s.connection.GetItemWithContext(ctx, input)
+	if err != nil {
+		s.logger.Fatal().Err(err).Msg("failed to query dynamodb")
+		return sprintCoverageData{}, err
+	}
+
+	item := item{}
+	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
+	if err != nil {
+		s.logger.Fatal().Err(err).Msg("failed to UnmarshalMap data from dynamodb")
+		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+	}
+
+	if item.Zip == "" {
+		s.logger.Debug().Msgf("Could not find coverage data for zipcode: %s", zipCode)
+		return sprintCoverageData{}, nil
+	}
+
+	var data sprintCoverageData
+	json.Unmarshal([]byte(item.JsonData), &data)
+	return data, nil
+}
+func (s SprintDbClient) isZipCovered(zipCode string, data sprintCoverageData) bool {
+	if len(data.CurPctCov) == 0 || len(data.LTE4GPctCov) == 0 {
+		s.logger.Debug().Msgf("zipcode: %s not covered as either Cur_Pct_Cov, LTE_4G_PctCov fields are empty", zipCode)
+		return false
+	}
+
+	curPctCov, err := strconv.ParseFloat(data.CurPctCov, 64)
+	if err != nil {
+		s.logger.Fatal().Err(err).Msg("Illegal value in Cur_Pct_Cov")
+		return false
+	}
+
+	lTE4GPctCov, err := strconv.ParseFloat(data.LTE4GPctCov, 64)
+	if err != nil {
+		s.logger.Fatal().Err(err).Msg("Illegal value in LTE_4G_PctCov")
+		return false
+	}
+
+	if lTE4GPctCov > 50 && curPctCov > 50 {
+		return true
+	}
+	return false
 }

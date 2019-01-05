@@ -50,6 +50,33 @@ aws dynamodb create-table \
     --endpoint-url http://localhost:8000
 
 
+aws dynamodb create-table \
+    --cli-input-json file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/verizon_table_coverage.json \
+    --endpoint-url http://localhost:8000
+
+aws dynamodb create-table \
+--cli-input-json file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/sprint_table_coverage.json \
+--endpoint-url http://localhost:8000
+
+
+// CREATE ZIP CODE DATA RECORD FOR VERIZON
+
+    aws dynamodb put-item \
+    --table-name verizon_coverage \
+    --item '{"ZIP": {"S": "94105"}, "env": {"S": "qa/prod"}}' \
+    --endpoint-url http://localhost:8000
+
+    aws dynamodb put-item \
+    --table-name verizon_coverage \
+    --item file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/verizon_coverage_data.json \
+    --endpoint-url http://localhost:8000
+
+// CREATE ZIP CODE DATA RECORD FOR SPRINT
+aws dynamodb put-item \
+    --table-name sprint_coverage \
+    --item file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/sprint_coverage_data.json \
+    --endpoint-url http://localhost:8000
+
 
 aws dynamodb put-item \
 --table-name Music  \
@@ -68,3 +95,20 @@ aws dynamodb put-item \
     --endpoint-url http://localhost:8000
 
 aws dynamodb query --table-name Music --key-conditions file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/dynamoquery.json --endpoint-url http://localhost:8000
+
+
+aws dynamodb describe-table --table-name Music --endpoint-url http://localhost:8000
+
+
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+
+
+aws dynamodb delete-table --table-name MusicCollection --endpoint-url http://localhost:8000
+
+aws dynamodb get-item --table-name verizon_coverage --key file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/coveragequery.json --endpoint-url http://localhost:8000
+
+aws dynamodb get-item --table-name sprint_coverage --key file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/coveragequery.json --endpoint-url http://localhost:8000
+
+aws dynamodb batch-write-item --request-items file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/verizon_coverage_batch_data.json --endpoint-url http://localhost:8000
+
+aws dynamodb batch-write-item --request-items file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/sprint_coverage_batch_data.json --endpoint-url http://localhost:8000

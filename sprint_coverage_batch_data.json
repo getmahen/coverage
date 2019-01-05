@@ -1,0 +1,36 @@
+{
+  "sprint_coverage": [
+      {
+          "PutRequest": {
+              "Item": {
+                "ZIP" :{"S": "00015"},
+                "JSON_DATA":{"S":"{\"CSA_Leaf\":\"PHXTUC520\",\"Cur_Pct_Cov\":\"24.600875690601\",\"STATE\":\"AZ\",\"LTE_4G_PctCov\":\"24.2164288522479\"}"}
+              }
+          }
+      },
+      {
+          "PutRequest": {
+            "Item": {
+              "ZIP" :{"S": "00016"},
+              "JSON_DATA":{"S":"{\"CSA_Leaf\":\"\",\"Cur_Pct_Cov\":\"0\",\"STATE\":\"CA\",\"LTE_4G_PctCov\":\"0\"}"}
+            }
+          }
+      },
+      {
+          "PutRequest": {
+            "Item": {
+              "ZIP" :{"S": "94105"},
+              "JSON_DATA":{"S":"{\"CSA_Leaf\":\"SFRSFR415\",\"Cur_Pct_Cov\":\"100\",\"STATE\":\"CA\",\"LTE_4G_PctCov\":\"100\"}"}
+            }
+          }
+      },
+      {
+        "PutRequest": {
+          "Item": {
+            "ZIP" :{"S": "94089"},
+            "JSON_DATA":{"S":"{\"CSA_Leaf\":\"SFRSCL408\",\"Cur_Pct_Cov\":\"99.9999351976726\",\"STATE\":\"CA\",\"LTE_4G_PctCov\":\"99.9999467393946\"}"}
+          }
+        }
+    }
+  ]
+}

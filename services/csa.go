@@ -5,6 +5,7 @@ import (
 
 	"bitbucket.org/credomobile/coverage/dbclient"
 	"bitbucket.org/credomobile/coverage/entity"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
@@ -52,19 +53,21 @@ type csa struct {
 func NewCsa(logger *zerolog.Logger) csa {
 	//xray.AWS(dynamo.Client)
 
-	awsSession, err := session.NewSession()
+	//awsSession, err := session.NewSession()
+	config := &aws.Config{
+		Region:   aws.String("us-east-2"),
+		Endpoint: aws.String("http://localhost:8000"),
+	}
+	awsSession, err := session.NewSession(config)
+
 	if err != nil {
 		logger.Fatal().Err(err).Msg("unable to create connection to dynamodb")
 	}
 	dynamo := dynamodb.New(awsSession)
 
 	return csa{
-		logger: logger,
-		dbClient: dbclient.SprintDbClient{
-			TableName:  "sprint_coverage",
-			Logger:     logger,
-			Connection: dynamodbiface.DynamoDBAPI(dynamo),
-		},
+		logger:   logger,
+		dbClient: dbclient.NewSprintClient("sprint_coverage", logger, dynamodbiface.DynamoDBAPI(dynamo)),
 	}
 }
 

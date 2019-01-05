@@ -1,0 +1,7 @@
+{
+  "ZIP" :{"S": "94105"},
+  "STATE":{"S": "CA"},
+  "VZW_LTE_IND":{"S": "Y"},
+  "VZW_LTE":{"S": "100"},
+  "JSON_DATA":{"S":"{\"PO_NAME\":\"HOLTSVILLE\",\"ENC_ZIP\":\"94105\",\"COUNTY\":\"Aguadilla\"}"}
+}
