@@ -78,9 +78,9 @@ type mockClientFactory struct {
 	mock.Mock
 }
 
-func (m mockClientFactory) GetDbClient(t entity.CarrierType) (dbclient.Client, error) {
+func (m mockClientFactory) GetDbClient(t entity.CarrierType) (dbclient.CoverageCheckClient, error) {
 	args := m.Called(t)
-	return args.Get(0).(dbclient.Client), errOrNil(args.Get(1))
+	return args.Get(0).(dbclient.CoverageCheckClient), errOrNil(args.Get(1))
 }
 
 type mockSprintClient struct {
