@@ -43,7 +43,7 @@ func Handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 
 		//WITH FACTORY PATTERN
 		dbclientFactory := dbclient.NewDbClientFactory(config.DynamoDBHistoryArn, app.Logger)
-		coverageCheckService := services.NewCoverageCheck(dbclientFactory, app.Logger)
+		coverageCheckService := services.NewCoverageCheck(dbclientFactory)
 
 		////** ORIGINAL CODE
 		//csaService := services.NewCsa(config.DynamoDBHistoryArn, app.Logger)

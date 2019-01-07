@@ -93,14 +93,14 @@ func TestGetCsaSadPathValidationErrors(t *testing.T) {
 			statusCode:       http.StatusBadRequest,
 		},
 		{
-			desc:             "Invalid zipcode length",
+			desc:             "Invalid zipcode with exceeded length",
 			zipCode:          "94105678907",
 			expectedResponse: `{"Errors":[{"message":"Illegal value for property","path":"zipcode"}]}`,
 			statusCode:       http.StatusBadRequest,
 		},
 		{
-			desc:             "Invalid zipcode with short length",
-			zipCode:          "941",
+			desc:             "Invalid zipcode with shortened length",
+			zipCode:          "9410",
 			expectedResponse: `{"Errors":[{"message":"Illegal value for property","path":"zipcode"}]}`,
 			statusCode:       http.StatusBadRequest,
 		},

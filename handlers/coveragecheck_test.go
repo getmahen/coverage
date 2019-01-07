@@ -102,8 +102,15 @@ func TestCoverageCheckSadPathValidationErrors(t *testing.T) {
 			statusCode:       http.StatusBadRequest,
 		},
 		{
-			desc:             "Invalid zipcode length and a valid carriedID",
-			zipCode:          "94105678907",
+			desc:             "Invalid zipcode with exceeded length and a valid carriedID",
+			zipCode:          "941055",
+			carrierID:        "1",
+			expectedResponse: `{"Errors":[{"message":"Illegal value for property","path":"zipcode"}]}`,
+			statusCode:       http.StatusBadRequest,
+		},
+		{
+			desc:             "Invalid zipcode with shortened length and a valid carriedID",
+			zipCode:          "9410",
 			carrierID:        "1",
 			expectedResponse: `{"Errors":[{"message":"Illegal value for property","path":"zipcode"}]}`,
 			statusCode:       http.StatusBadRequest,

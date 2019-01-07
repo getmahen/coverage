@@ -15,19 +15,6 @@ func GetCsa(validator validators.CsaValidator, csaService services.Csa) func(w h
 	return func(w http.ResponseWriter, r *http.Request) {
 		var validationErrors []entity.Error
 
-		// zipCode := r.URL.Query().Get("zipcode")
-		// if zipCode == "" {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	json.NewEncoder(w).Encode(entity.Error{Message: "Missing required property", Path: "zipcode"})
-		// }
-
-		// validationErrors = validator.Validate(r.Context(), zipCode)
-		// if len(validationErrors) > 0 {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	json.NewEncoder(w).Encode(entity.Response{Errors: validationErrors})
-		// 	return
-		// }
-
 		validationErrors = validator.Validate(r.Context(), r)
 		if len(validationErrors) > 0 {
 			w.WriteHeader(http.StatusBadRequest)

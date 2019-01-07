@@ -9,11 +9,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var zipCodeRegex = regexp.MustCompile("(^\\d{5}$|^\\d{9}$)")
+var zipCodeRegex = regexp.MustCompile("^(\\d{5})?$")
 
 type CoverageCheckValidator interface {
-	//Validate(ctx context.Context, zipCode string, carrierID CarrierIDType) []entity.Error
-	//Validate(ctx context.Context, zipCode string, carrierID string) []entity.Error
 	Validate(ctx context.Context, r *http.Request) []entity.Error
 }
 type coverageCheckValidator struct {

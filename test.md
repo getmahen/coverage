@@ -1,9 +1,8 @@
 /// TO GET JWT
 getpostmantoken --expire=1d --service=coverage | pbcopy
 
-
-curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJwb3N0bWFuIiwiY2FsbGVlQWdlbnRBdWQiOiJjb3ZlcmFnZSIsImV4cCI6MTU0NzA1NjI2OCwiaWF0IjoxNTQ2NDUxNDY4fQ.ZhHEp-UomFcS_6HDig0Kv7isN3Md0iZhtrOGU8D_-fZP98U9npWPQ2dOxpnDURDqFvkcWtIbwaF9LjQCtOwtD6bKfxIbUVrH4OzAFCUd_O_xCZV7ULwv5VYu6E7z9vCCjXKoRxKH-uYOHcYI3j4u5cZFCZQeDlKORCnpucfBoZx8cnJtZyAFuONyC9-S9qqps6ZOk53B8qUNZ3snELvmz5zLwLnDd4jIzIj21FsvPwGX7yZzA4tLPVjOQN9om_ncFa33p1nm8YZc1r3UdbplI_htZbswb5m9Zy1TLOQjZd26zJJHD3UbWGrTy9pu-lJfetJDJ9DAItQeCPpH-OiPwA" \
-https://credoqa.dev/coverage/v1/coveragecheck/?zipcode=94538&carrierid=2
+# RUN LOCAL DYNAMODB DOCKER 
+docker run -d -p 8000:8000 amazon/dynamodb-local
 
 
 curl -X GET \

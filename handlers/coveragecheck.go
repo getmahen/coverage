@@ -10,34 +10,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-//func CheckCoverage(coverageCheckService services.CoverageCheck) func(w http.ResponseWriter, r *http.Request) {
 func CheckCoverage(validator validators.CoverageCheckValidator, coverageCheckService services.CoverageCheck) func(w http.ResponseWriter, r *http.Request) {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		var validationErrors []entity.Error
-
-		// zipCode := r.URL.Query().Get("zipcode")
-		// if zipCode == "" {
-		// 	validationErrors = append(validationErrors, entity.Error{Message: "Missing required property", Path: "zipcode"})
-		// }
-
-		// carrierID := r.URL.Query().Get("carrierid")
-		// if carrierID == "" {
-		// 	validationErrors = append(validationErrors, entity.Error{Message: "Missing required property", Path: "carrierid"})
-		// }
-
-		// if len(validationErrors) > 0 {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	json.NewEncoder(w).Encode(entity.Response{Errors: validationErrors})
-		// 	return
-		// }
-
-		// validationErrors = validator.Validate(r.Context(), zipCode, carrierID)
-		// if len(validationErrors) > 0 {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	json.NewEncoder(w).Encode(entity.Response{Errors: validationErrors})
-		// 	return
-		// }
 
 		validationErrors = validator.Validate(r.Context(), r)
 		if len(validationErrors) > 0 {
