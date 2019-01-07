@@ -42,7 +42,11 @@ func Handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 		//coverageCheckService := services.NewCoverageCheck(config.DynamoDBHistoryArn, app.Logger)
 
 		//WITH FACTORY PATTERN
-		dbclientFactory := dbclient.NewDbClientFactory(config.DynamoDBHistoryArn, app.Logger)
+		dbclientFactory, err := dbclient.NewDbClientFactory(config.DynamoDBHistoryArn, app.Logger)
+		if err != nil {
+			app.Logger.Fatal().Err(err).Msg("unable to configure Db Client")
+		}
+
 		coverageCheckService := services.NewCoverageCheck(dbclientFactory)
 
 		////** ORIGINAL CODE

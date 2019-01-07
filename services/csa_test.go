@@ -17,7 +17,7 @@ func TestNewCsa(t *testing.T) {
 	csaService := NewCsa(&logger)
 
 	assert.IsType(t, csa{}, csaService)
-	assert.IsType(t, dbclient.SprintDbClient{}, csaService.dbClient)
+	assert.Implements(t, (*dbclient.SprintCsaDbClient)(nil), csaService.dbClient)
 }
 
 func TestGetCsaHappyPathWithCsaFound(t *testing.T) {

@@ -12,12 +12,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type Client interface {
+type CoverageCheckClient interface {
 	VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error)
 }
 
 type ClientFactory interface {
-	GetDbClient(t entity.CarrierType) (Client, error)
+	GetDbClient(t entity.CarrierType) (CoverageCheckClient, error)
 }
 
 type clientFactoryImpl struct {
@@ -25,7 +25,7 @@ type clientFactoryImpl struct {
 	connection dynamodbiface.DynamoDBAPI
 }
 
-func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) ClientFactory {
+func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) (ClientFactory, error) {
 	//awsSession, err := session.NewSession()
 	config := &aws.Config{
 		Region:   aws.String("us-east-2"),
@@ -35,21 +35,20 @@ func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) ClientFactor
 
 	if err != nil {
 		logger.Fatal().Err(err).Msg("unable to create connection to dynamodb")
+		return nil, err
 	}
 	dynamo := dynamodb.New(awsSession)
 	return clientFactoryImpl{
 		connection: dynamodbiface.DynamoDBAPI(dynamo),
 		logger:     logger,
-	}
+	}, nil
 }
 
-func (c clientFactoryImpl) GetDbClient(t entity.CarrierType) (Client, error) {
+func (c clientFactoryImpl) GetDbClient(t entity.CarrierType) (CoverageCheckClient, error) {
 	switch t {
 	case entity.Sprint:
-		//return SprintDbClient{TableName: "sprint_coverage", Logger: c.logger, Connection: c.connection}, nil
 		return NewSprintClient("sprint_coverage", c.logger, c.connection), nil
 	case entity.Verizon:
-		//return VerizonDbClient{TableName: "verizon_coverage", Logger: c.logger, Connection: c.connection}, nil
 		return NewVerizonClient("verizon_coverage", c.logger, c.connection), nil
 	default:
 		//if type is invalid, return an error

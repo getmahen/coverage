@@ -13,7 +13,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type VerizonDbClient struct {
+type verizonDbClient struct {
 	tableName  string
 	logger     *zerolog.Logger
 	connection dynamodbiface.DynamoDBAPI
@@ -31,11 +31,11 @@ type verizonCoverageData struct {
 	PoName    string `json:"PO_NAME"`
 }
 
-func NewVerizonClient(tableName string, logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) VerizonDbClient {
-	return VerizonDbClient{tableName: tableName, logger: logger, connection: connection}
+func NewVerizonClient(tableName string, logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) verizonDbClient {
+	return verizonDbClient{tableName: tableName, logger: logger, connection: connection}
 }
 
-func (v VerizonDbClient) VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error) {
+func (v verizonDbClient) VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error) {
 	v.logger.Info().Msgf("*** IN VERIZON DB CLIENT ***")
 
 	input := &dynamodb.GetItemInput{
@@ -72,7 +72,7 @@ func (v VerizonDbClient) VerifyCoverage(ctx context.Context, zipCode string, car
 	return covered, nil
 }
 
-func (v VerizonDbClient) isZipCovered(zipCode string, data verizonCoverageData) bool {
+func (v verizonDbClient) isZipCovered(zipCode string, data verizonCoverageData) bool {
 	if len(data.VzwLte) == 0 || len(data.VzwLteInd) == 0 || len(data.State) == 0 {
 		v.logger.Debug().Msgf("zipcode: %s not covered as either Vzw_Lte, Vzw_Lte_Ind or State fields are empty", zipCode)
 		return false
