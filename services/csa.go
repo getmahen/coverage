@@ -16,38 +16,9 @@ type Csa interface {
 	GetCsa(ctx context.Context, zipCode string) (entity.CsaResponse, error)
 }
 
-//*** ORIGINAL CODE
-// type csa struct {
-// 	tableName  *string
-// 	logger     *zerolog.Logger
-// 	connection dynamodbiface.DynamoDBAPI
-// }
-
-// func NewCsa(dynamodbARN string, logger *zerolog.Logger) csa {
-// 	awsSession, err := session.NewSession()
-// 	if err != nil {
-// 		logger.Fatal().Err(err).Msg("unable to create connection to dynamodb")
-// 	}
-// 	dynamo := dynamodb.New(awsSession)
-// 	//xray.AWS(dynamo.Client)
-
-// 	return csa{
-// 		tableName:  aws.String(strings.Split(dynamodbARN, "/")[1]),
-// 		connection: dynamodbiface.DynamoDBAPI(dynamo),
-// 		logger:     logger,
-// 	}
-// }
-
-// func (c csa) GetCsa(ctx context.Context, zipCode string) (entity.CsaResponse, error) {
-// 	c.logger.Info().Msgf("Getting Csa for zipcode: %s", zipCode)
-
-// 	return entity.CsaResponse{CsaFound: true, Csa: "fakeCsa"}, nil
-// }
-//*** ORIGINAL CODE
-
 type csa struct {
 	logger   *zerolog.Logger
-	dbClient dbclient.SprintDbClient
+	dbClient dbclient.SprintCsaDbClient
 }
 
 func NewCsa(logger *zerolog.Logger) csa {

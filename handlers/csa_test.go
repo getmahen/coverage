@@ -75,6 +75,7 @@ func TestGetCsaHappyPath(t *testing.T) {
 			} else {
 				assert.Contains(t, string(body), `{"Result":{"CsaFound":false,"Csa":""}}`)
 			}
+			csaService.AssertExpectations(t)
 		})
 	}
 }
@@ -131,6 +132,7 @@ func TestGetCsaSadPathValidationErrors(t *testing.T) {
 
 			body, _ := ioutil.ReadAll(res.Body)
 			assert.Contains(t, string(body), tC.expectedResponse)
+			csaService.AssertExpectations(t)
 		})
 	}
 }
@@ -155,6 +157,7 @@ func TestGetCsaSadPathInternalServerError(t *testing.T) {
 
 	body, _ := ioutil.ReadAll(res.Body)
 	assert.Contains(t, string(body), `{"message":"There is a problem on the server. Please try again later"}`)
+	csaService.AssertExpectations(t)
 }
 
 type MockCsa struct {

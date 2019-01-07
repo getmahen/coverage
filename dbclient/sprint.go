@@ -13,6 +13,10 @@ import (
 	"github.com/rs/zerolog"
 )
 
+type SprintCsaDbClient interface {
+	GetCsa(ctx context.Context, zipCode string) (string, error)
+}
+
 type SprintDbClient struct {
 	tableName  string
 	logger     *zerolog.Logger

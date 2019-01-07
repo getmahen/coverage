@@ -75,6 +75,7 @@ func TestCoverageCheckHappyPath(t *testing.T) {
 			} else {
 				assert.Contains(t, string(body), `{"Result":{"IsCovered":false}}`)
 			}
+			coveragecheckService.AssertExpectations(t)
 		})
 	}
 }
@@ -164,6 +165,7 @@ func TestCoverageCheckSadPathValidationErrors(t *testing.T) {
 
 			body, _ := ioutil.ReadAll(res.Body)
 			assert.Contains(t, string(body), tC.expectedResponse)
+			coveragecheckService.AssertExpectations(t)
 		})
 	}
 }
@@ -189,6 +191,7 @@ func TestCoverageCheckSadPathInternalServerError(t *testing.T) {
 
 	body, _ := ioutil.ReadAll(res.Body)
 	assert.Contains(t, string(body), `{"message":"There is a problem on the server. Please try again later"}`)
+	coveragecheckService.AssertExpectations(t)
 }
 
 type MockCoverageCheck struct {
