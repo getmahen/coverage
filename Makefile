@@ -3,7 +3,7 @@ OK_COLOR=\033[0;32m
 TS_COLOR=\033[1;30m
 BUILD_DATE_VER=""
 TIMESTAMP := $(shell date -u +%Y%m%d%H%M%S)
-PORT="8001"
+PORT="8002"
 
 BASE_ENV_VALS := ENVIRONMENT="LOCAL_DEV" \
 		VAULT_TOKEN="cbc762a7-1eba-0aac-49f8-0deff1bcdfed" \

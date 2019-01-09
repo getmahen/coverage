@@ -13,7 +13,7 @@ import (
 )
 
 type CoverageCheckClient interface {
-	VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error)
+	VerifyCoverage(ctx context.Context, zipCode string) (bool, error)
 }
 
 type ClientFactory interface {
@@ -47,9 +47,9 @@ func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) (ClientFacto
 func (c clientFactoryImpl) GetDbClient(t entity.CarrierType) (CoverageCheckClient, error) {
 	switch t {
 	case entity.Sprint:
-		return NewSprintClient("sprint_coverage", c.logger, c.connection), nil
+		return NewSprintClient(c.logger, c.connection), nil
 	case entity.Verizon:
-		return NewVerizonClient("verizon_coverage", c.logger, c.connection), nil
+		return NewVerizonClient(c.logger, c.connection), nil
 	default:
 		//if type is invalid, return an error
 		return nil, errors.New("Invalid Carrier Type")

@@ -38,7 +38,7 @@ func NewCsa(logger *zerolog.Logger) csa {
 
 	return csa{
 		logger:   logger,
-		dbClient: dbclient.NewSprintClient("sprint_coverage", logger, dynamodbiface.DynamoDBAPI(dynamo)),
+		dbClient: dbclient.NewSprintClient(logger, dynamodbiface.DynamoDBAPI(dynamo)),
 	}
 }
 

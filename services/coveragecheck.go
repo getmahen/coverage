@@ -31,7 +31,7 @@ func (c coverageCheck) Verify(ctx context.Context, zipCode string, carrierID str
 		return entity.CoverageCheckResponse{}, err
 	}
 
-	isCovered, err := dbclient.VerifyCoverage(ctx, zipCode, carrierID)
+	isCovered, err := dbclient.VerifyCoverage(ctx, zipCode)
 	if err != nil {
 		return entity.CoverageCheckResponse{}, err
 	}

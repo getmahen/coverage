@@ -1,0 +1,27 @@
+{
+  "AttributeDefinitions": [
+  {
+      "AttributeName": "zipcode", 
+      "AttributeType": "S"
+  },
+  {
+    "AttributeName": "carriertype", 
+    "AttributeType": "S"
+  }
+  ], 
+  "ProvisionedThroughput": {
+      "WriteCapacityUnits": 5, 
+      "ReadCapacityUnits": 2
+  }, 
+  "TableName": "coverage", 
+  "KeySchema": [
+    {
+        "KeyType": "HASH", 
+        "AttributeName": "zipcode"
+    },
+    {
+      "KeyType": "RANGE", 
+      "AttributeName": "carriertype"
+    }
+  ]
+}

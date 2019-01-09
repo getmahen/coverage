@@ -15,7 +15,7 @@ func TestCoverageCheckHappyPathForSprint(t *testing.T) {
 	dbClientFactory := mockClientFactory{}
 
 	mockSprintClient := mockSprintClient{}
-	mockSprintClient.On("VerifyCoverage", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
+	mockSprintClient.On("VerifyCoverage", mock.Anything, mock.Anything).Return(true, nil)
 	dbClientFactory.On("GetDbClient", mock.Anything).Return(mockSprintClient, nil)
 
 	service := NewCoverageCheck(dbClientFactory)
@@ -32,7 +32,7 @@ func TestCoverageCheckHappyPathForVerizon(t *testing.T) {
 	dbClientFactory := mockClientFactory{}
 	mockVerizonClient := mockVerizonClient{}
 
-	mockVerizonClient.On("VerifyCoverage", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
+	mockVerizonClient.On("VerifyCoverage", mock.Anything, mock.Anything).Return(true, nil)
 	dbClientFactory.On("GetDbClient", mock.Anything).Return(mockVerizonClient, nil)
 
 	service := NewCoverageCheck(dbClientFactory)
@@ -48,7 +48,7 @@ func TestCoverageCheckHappyPathForVerizon(t *testing.T) {
 func TestCoverageCheckWithDbClientFactoryError(t *testing.T) {
 	dbClientFactory := mockClientFactory{}
 	mockVerizonClient := mockVerizonClient{}
-	mockVerizonClient.On("VerifyCoverage", mock.Anything, mock.Anything, mock.Anything).Return(true, nil)
+	mockVerizonClient.On("VerifyCoverage", mock.Anything, mock.Anything).Return(true, nil)
 
 	dbClientFactory.On("GetDbClient", mock.Anything).Return(mockVerizonClient, errors.New("Fake db Client Factory error"))
 
@@ -63,7 +63,7 @@ func TestCoverageCheckWithDbClientError(t *testing.T) {
 	dbClientFactory := mockClientFactory{}
 
 	mockVerizonClient := mockVerizonClient{}
-	mockVerizonClient.On("VerifyCoverage", mock.Anything, mock.Anything, mock.Anything).Return(false, errors.New("Fake db Client error"))
+	mockVerizonClient.On("VerifyCoverage", mock.Anything, mock.Anything).Return(false, errors.New("Fake db Client error"))
 	dbClientFactory.On("GetDbClient", mock.Anything).Return(mockVerizonClient, nil)
 
 	service := NewCoverageCheck(dbClientFactory)
@@ -91,13 +91,13 @@ type mockVerizonClient struct {
 	mock.Mock
 }
 
-func (m mockSprintClient) VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error) {
-	args := m.Called(ctx, zipCode, carrierID)
+func (m mockSprintClient) VerifyCoverage(ctx context.Context, zipCode string) (bool, error) {
+	args := m.Called(ctx, zipCode)
 	return args.Get(0).(bool), errOrNil(args.Get(1))
 }
 
-func (m mockVerizonClient) VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error) {
-	args := m.Called(ctx, zipCode, carrierID)
+func (m mockVerizonClient) VerifyCoverage(ctx context.Context, zipCode string) (bool, error) {
+	args := m.Called(ctx, zipCode)
 	return args.Get(0).(bool), errOrNil(args.Get(1))
 }
 

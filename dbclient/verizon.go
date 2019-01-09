@@ -2,10 +2,10 @@ package dbclient
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
+	"bitbucket.org/credomobile/coverage/entity"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -14,35 +14,49 @@ import (
 )
 
 type verizonDbClient struct {
-	tableName  string
 	logger     *zerolog.Logger
 	connection dynamodbiface.DynamoDBAPI
 }
 
-type item struct {
-	Zip      string `json:"ZIP"`
-	JsonData string `json:"JSON_DATA"`
-}
-
 type verizonCoverageData struct {
-	VzwLte    string `json:"VZW_LTE"`
-	VzwLteInd string `json:"VZW_LTE_IND"`
-	State     string `json:"STATE"`
-	PoName    string `json:"PO_NAME"`
+	ZipCode         string `json:"zipcode"`
+	CarrierType     string `json:"carriertype"`
+	EncZip          string `json:"enc_zip"`
+	State           string `json:"state"`
+	PoName          string `json:"po_name"`
+	VzwVoiceOr1x    string `json:"vzwvoiceor1x"`
+	VzwVoiceOr1xInd string `json:"vzw_voice_or_1x_ind"`
+	VzwEvdo         string `json:"vzwevdo"`
+	VzwEvdoInd      string `json:"vzw_evdo_ind"`
+	VzwLte          string `json:"vzelte"`
+	VzwLteInd       string `json:"vze_lte_Ind"`
+	AllLte          string `json:"alltle"`
+	AllLteInd       string `json:"all_tle_ind"`
+	LoadDate        string `json:"load_date"`
+	County          string `json:"county"`
+	MtaCode         string `json:"mtacode"`
+	MtaName         string `json:"mtaname"`
+	BtaCode         string `json:"btacode"`
+	BtaName         string `json:"btaname"`
+	MsaRsaCode      string `json:"msarsacode"`
+	MsaRsaName      string `json:"msarsaname"`
 }
 
-func NewVerizonClient(tableName string, logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) verizonDbClient {
-	return verizonDbClient{tableName: tableName, logger: logger, connection: connection}
+func NewVerizonClient(logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) verizonDbClient {
+	return verizonDbClient{logger: logger, connection: connection}
 }
 
-func (v verizonDbClient) VerifyCoverage(ctx context.Context, zipCode string, carrierID string) (bool, error) {
+func (v verizonDbClient) VerifyCoverage(ctx context.Context, zipCode string) (bool, error) {
 	v.logger.Info().Msgf("*** IN VERIZON DB CLIENT ***")
 
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(v.tableName),
+		TableName: aws.String(entity.TableName),
 		Key: map[string]*dynamodb.AttributeValue{
-			"ZIP": {
+			"zipcode": {
 				S: aws.String(zipCode),
+			},
+			"carriertype": {
+				S: aws.String("verizon"),
 			},
 		},
 	}
@@ -53,22 +67,22 @@ func (v verizonDbClient) VerifyCoverage(ctx context.Context, zipCode string, car
 		return false, err
 	}
 
-	item := item{}
+	item := verizonCoverageData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 	if err != nil {
 		v.logger.Fatal().Err(err).Msg("failed to UnmarshalMap data from dynamodb")
 		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
 	}
 
-	if item.Zip == "" {
+	if item.ZipCode == "" {
 		v.logger.Debug().Msgf("Could not find coverage for zipcode: %s", zipCode)
 		return false, nil
 	}
 
-	var data verizonCoverageData
-	json.Unmarshal([]byte(item.JsonData), &data)
+	// var data verizonCoverageData
+	// json.Unmarshal([]byte(item.JsonData), &data)
 
-	covered := v.isZipCovered(zipCode, data)
+	covered := v.isZipCovered(zipCode, item)
 	return covered, nil
 }
 

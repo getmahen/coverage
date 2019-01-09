@@ -27,8 +27,8 @@ curl -X GET \
 
 //TODO
 - Move the Valdation logic to the handler level from Service layer - (DONE)
-- Fix the Validator to accept (w http.ResponseWriter, r *http.Request) as the func signature
-- Add more table driven tests for Validator
+- Fix the Validator to accept (w http.ResponseWriter, r *http.Request) as the func signature - (DONE)
+- Add more table driven tests for Validator - (DONE)
 - Check if the Frink's Validator can be used instead
 - JWT Auth
 - Implement Datadog/X-ray
@@ -102,7 +102,7 @@ aws dynamodb describe-table --table-name Music --endpoint-url http://localhost:8
 aws dynamodb list-tables --endpoint-url http://localhost:8000
 
 
-aws dynamodb delete-table --table-name MusicCollection --endpoint-url http://localhost:8000
+aws dynamodb delete-table --table-name sprint_coverage --endpoint-url http://localhost:8000
 
 aws dynamodb get-item --table-name verizon_coverage --key file:///Users/mrekapally/go/src/bitbucket.org/credomobile/coverage/coveragequery.json --endpoint-url http://localhost:8000
 

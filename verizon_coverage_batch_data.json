@@ -1,18 +1,26 @@
 {
-  "verizon_coverage": [
+  "coverage": [
       {
           "PutRequest": {
               "Item": {
-                "ZIP" :{"S": "94105"},
-                "JSON_DATA":{"S":"{\"VZW_LTE\":\"100\",\"VZW_LTE_IND\":\"Y\",\"STATE\":\"CA\",\"PO_NAME\":\"SAN FRANCISCO\",\"ENC_ZIP\":\"94105\",\"COUNTY\":\"Aguadilla\"}"}
+                "ZipCode" :{
+                  "S": "94105"
+                },
+                "CarrierType":{
+                  "S":"verizon"
+                }
               }
           }
       },
       {
           "PutRequest": {
             "Item": {
-              "ZIP" :{"S": "01068"},
-              "JSON_DATA":{"S":"{\"VZW_LTE\":\"67.92571\",\"VZW_LTE_IND\":\"Y\",\"STATE\":\"MA\",\"PO_NAME\":\"CHESTERFIELD\",\"ENC_ZIP\":\"01068\",\"COUNTY\":\"Hampshire\"}"}
+              "ZipCode" :{
+                "S": "94106"
+              },
+              "CarrierType":{
+                "S":"verizon"
+              }
             }
           }
       }
