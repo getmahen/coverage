@@ -77,8 +77,8 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 	proj := expression.NamesList(expression.Name("zipcode"), expression.Name("carriertype"), expression.Name("csa_leaf"), expression.Name("cur_pct_cov"), expression.Name("lte_4g_pctcov"))
 	expr, err := expression.NewBuilder().WithProjection(proj).Build()
 	if err != nil {
-		s.logger.Fatal().Err(err).Msg("failed to build projection expression to query dynamodb")
-		panic("failed to build projection expression to query dynamodb")
+		s.logger.Error().Err(err).Msg("failed to build projection expression to query dynamodb")
+		return sprintCoverageData{}, err
 	}
 
 	input := &dynamodb.GetItemInput{
@@ -97,15 +97,15 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 
 	result, err := s.connection.GetItemWithContext(ctx, input)
 	if err != nil {
-		s.logger.Fatal().Err(err).Msg("failed to query coverage dynamodb table")
+		s.logger.Error().Err(err).Msg("failed to query coverage dynamodb table")
 		return sprintCoverageData{}, err
 	}
 
 	item := sprintCoverageData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 	if err != nil {
-		s.logger.Fatal().Err(err).Msg("failed to UnmarshalMap data from dynamodb")
-		panic(fmt.Sprintf("Failed to unmarshal Record, %v", err))
+		s.logger.Error().Err(err).Msg("failed to UnmarshalMap data from dynamodb")
+		return sprintCoverageData{}, err
 	}
 
 	if item.ZipCode == "" {
@@ -125,13 +125,13 @@ func (s sprintDbClient) isZipCovered(zipCode string, data sprintCoverageData) bo
 
 	curPctCov, err := strconv.ParseFloat(data.CurPctCov, 64)
 	if err != nil {
-		s.logger.Fatal().Err(err).Msg("Illegal value in Cur_Pct_Cov")
+		s.logger.Error().Err(err).Msg("Illegal value in Cur_Pct_Cov")
 		return false
 	}
 
 	lTE4GPctCov, err := strconv.ParseFloat(data.Lte4GPctCov, 64)
 	if err != nil {
-		s.logger.Fatal().Err(err).Msg("Illegal value in LTE_4G_PctCov")
+		s.logger.Error().Err(err).Msg("Illegal value in LTE_4G_PctCov")
 		return false
 	}
 
