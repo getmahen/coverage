@@ -10,17 +10,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCoverageCheckHappyPath(t *testing.T) {
+func TestSprintVerifyCoverage(t *testing.T) {
 	testCases := []struct {
 		desc                  string
 		zipCode               string
 		expectZipCodeCovered  bool
 		causeDynamoDbError    bool
-		zipCodeExistInDb      bool
 		dynamodbReturnPayload map[string]string
 	}{
 		{
@@ -50,7 +50,7 @@ func TestCoverageCheckHappyPath(t *testing.T) {
 			},
 		},
 		{
-			desc:                 "results in no coverage for a zip code with missing information in database",
+			desc:                 "no coverage for a zip code with missing information in database",
 			zipCode:              "94107",
 			expectZipCodeCovered: false,
 			causeDynamoDbError:   false,
@@ -63,7 +63,7 @@ func TestCoverageCheckHappyPath(t *testing.T) {
 			},
 		},
 		{
-			desc:                 "results in no coverage for a zip code with invalid cur_pct_cov attribute in database",
+			desc:                 "no coverage for a zip code with invalid cur_pct_cov attribute in database",
 			zipCode:              "94107",
 			expectZipCodeCovered: false,
 			causeDynamoDbError:   false,
@@ -118,15 +118,15 @@ func TestCoverageCheckHappyPath(t *testing.T) {
 	for _, tC := range testCases {
 		logger := zerolog.New(os.Stdout).With().Logger()
 
-		fakeDb := &fakeDynamoDB{}
+		fakeDb := &fakeSprintDynamoDB{}
 		if tC.causeDynamoDbError {
-			fakeDb = &fakeDynamoDB{
+			fakeDb = &fakeSprintDynamoDB{
 				t:               t,
 				payloadToReturn: tC.dynamodbReturnPayload,
 				err:             errors.New("fake DB error"),
 			}
 		} else {
-			fakeDb = &fakeDynamoDB{
+			fakeDb = &fakeSprintDynamoDB{
 				t:               t,
 				payloadToReturn: tC.dynamodbReturnPayload,
 				err:             nil,
@@ -148,7 +148,97 @@ func TestCoverageCheckHappyPath(t *testing.T) {
 	}
 }
 
-func (fd *fakeDynamoDB) GetItemWithContext(ctx aws.Context, input *dynamodb.GetItemInput, opts ...request.Option) (*dynamodb.GetItemOutput, error) {
+func TestGetCsa(t *testing.T) {
+	testCases := []struct {
+		desc                  string
+		zipCode               string
+		expectCsa             bool
+		causeDynamoDbError    bool
+		zipCodeExistInDb      bool
+		dynamodbReturnPayload map[string]string
+	}{
+		{
+			desc:               "happy path with Zip code that has Csa",
+			zipCode:            "94105",
+			expectCsa:          true,
+			causeDynamoDbError: false,
+			dynamodbReturnPayload: map[string]string{
+				"zipcode":       "94105",
+				"carriertype":   "sprint",
+				"csa_leaf":      "fakeCsa",
+				"cur_pct_cov":   "100",
+				"lte_4g_pctcov": "100",
+			},
+		},
+		{
+			desc:               "happy path with Zip code that has no Csa",
+			zipCode:            "94105",
+			expectCsa:          true,
+			causeDynamoDbError: false,
+			dynamodbReturnPayload: map[string]string{
+				"zipcode":       "94105",
+				"carriertype":   "sprint",
+				"csa_leaf":      "",
+				"cur_pct_cov":   "100",
+				"lte_4g_pctcov": "100",
+			},
+		},
+		{
+			desc:               "Sad path when there is a failure to retrieve data from database",
+			zipCode:            "94105",
+			expectCsa:          true,
+			causeDynamoDbError: true,
+			dynamodbReturnPayload: map[string]string{
+				"zipcode":       "94105",
+				"carriertype":   "sprint",
+				"csa_leaf":      "",
+				"cur_pct_cov":   "100",
+				"lte_4g_pctcov": "100",
+			},
+		},
+	}
+	for _, tC := range testCases {
+		logger := zerolog.New(os.Stdout).With().Logger()
+
+		fakeDb := &fakeSprintDynamoDB{}
+		if tC.causeDynamoDbError {
+			fakeDb = &fakeSprintDynamoDB{
+				t:               t,
+				payloadToReturn: tC.dynamodbReturnPayload,
+				err:             errors.New("fake DB error"),
+			}
+		} else {
+			fakeDb = &fakeSprintDynamoDB{
+				t:               t,
+				payloadToReturn: tC.dynamodbReturnPayload,
+				err:             nil,
+			}
+		}
+
+		sprintdbClient := NewSprintClient(&logger, fakeDb)
+		result, err := sprintdbClient.GetCsa(context.Background(), tC.zipCode)
+
+		if tC.causeDynamoDbError {
+			assert.NotNil(t, err)
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, tC.dynamodbReturnPayload["csa_leaf"], result)
+		}
+
+		assert.Equal(t, tC.zipCode, fakeDb.Keys["zipcode"])
+		assert.Equal(t, "sprint", fakeDb.Keys["carriertype"])
+	}
+}
+
+type fakeSprintDynamoDB struct {
+	dynamodbiface.DynamoDBAPI
+	Keys            map[string]string
+	payloadToReturn map[string]string // Store fake return values
+	err             error
+	t               *testing.T
+}
+
+func (fd *fakeSprintDynamoDB) GetItemWithContext(ctx aws.Context, input *dynamodb.GetItemInput, opts ...request.Option) (*dynamodb.GetItemOutput, error) {
 	assert.Equal(fd.t, "coverage", *input.TableName, "incorrect table name")
 
 	expectedAttributes := map[string]*string{

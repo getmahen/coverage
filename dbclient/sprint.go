@@ -66,7 +66,7 @@ func (s sprintDbClient) GetCsa(ctx context.Context, zipCode string) (string, err
 
 	data, err := s.getData(ctx, zipCode)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 	return data.CsaLeaf, nil
 }
@@ -77,7 +77,7 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 	proj := expression.NamesList(expression.Name("zipcode"), expression.Name("carriertype"), expression.Name("csa_leaf"), expression.Name("cur_pct_cov"), expression.Name("lte_4g_pctcov"))
 	expr, err := expression.NewBuilder().WithProjection(proj).Build()
 	if err != nil {
-		s.logger.Error().Err(err).Msg("failed to build projection expression to query dynamodb")
+		s.logger.Error().Err(err).Msg("failed to build projection expression to query dynamodb table for Sprint coverage")
 		return sprintCoverageData{}, err
 	}
 
@@ -104,7 +104,7 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 	item := sprintCoverageData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 	if err != nil {
-		s.logger.Error().Err(err).Msg("failed to UnmarshalMap data from dynamodb")
+		s.logger.Error().Err(err).Msg("failed to UnmarshalMap Sprint coverage data from dynamodb")
 		return sprintCoverageData{}, err
 	}
 
