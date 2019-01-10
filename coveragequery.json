@@ -1,4 +1,4 @@
 {
-  "zipcode": {"S": "00605"},
-  "carriertype": {"S": "verizon"}
+  "zipcode": {"S": "00026"},
+  "carriertype": {"S": "sprint"}
 }

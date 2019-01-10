@@ -42,4 +42,7 @@ func TestGetDbClientForInvalidCarrierID(t *testing.T) {
 
 type fakeDynamoDB struct {
 	dynamodbiface.DynamoDBAPI
+	payload map[string]string // Store expected return values
+	err     error
+	t       *testing.T
 }

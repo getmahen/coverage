@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
+	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/rs/zerolog"
 )
 
@@ -71,6 +72,15 @@ func (s sprintDbClient) GetCsa(ctx context.Context, zipCode string) (string, err
 }
 
 func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCoverageData, error) {
+	// Get cur_pct_cov and lte_4g_pctcov attributes
+	//filter := expression.Name("zipcode").Equal(expression.Value(zipCode)).And(expression.Name("carriertype").Equal(expression.Value("sprint")))
+	proj := expression.NamesList(expression.Name("zipcode"), expression.Name("carriertype"), expression.Name("csa_leaf"), expression.Name("cur_pct_cov"), expression.Name("lte_4g_pctcov"))
+	expr, err := expression.NewBuilder().WithProjection(proj).Build()
+	if err != nil {
+		s.logger.Fatal().Err(err).Msg("failed to build projection expression to query dynamodb")
+		panic("failed to build projection expression to query dynamodb")
+	}
+
 	input := &dynamodb.GetItemInput{
 		TableName: aws.String(entity.TableName),
 		Key: map[string]*dynamodb.AttributeValue{
@@ -81,6 +91,8 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 				S: aws.String("sprint"),
 			},
 		},
+		ExpressionAttributeNames: expr.Names(),
+		ProjectionExpression:     expr.Projection(),
 	}
 
 	result, err := s.connection.GetItemWithContext(ctx, input)
