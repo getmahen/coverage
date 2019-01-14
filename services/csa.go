@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"bitbucket.org/credomobile/coverage/dbclient"
 	"bitbucket.org/credomobile/coverage/entity"
@@ -17,11 +19,11 @@ type Csa interface {
 }
 
 type csa struct {
-	logger   *zerolog.Logger
 	dbClient dbclient.SprintCsaDbClient
 }
 
-func NewCsa(logger *zerolog.Logger) csa {
+//NewCsa constructs and gives back csa service
+func NewCsa(dynamodbARN string, logger *zerolog.Logger) (csa, error) {
 	//xray.AWS(dynamo.Client)
 
 	//awsSession, err := session.NewSession()
@@ -33,17 +35,21 @@ func NewCsa(logger *zerolog.Logger) csa {
 
 	if err != nil {
 		logger.Fatal().Err(err).Msg("unable to create connection to dynamodb")
+		return csa{}, err
 	}
 	dynamo := dynamodb.New(awsSession)
 
-	return csa{
-		logger:   logger,
-		dbClient: dbclient.NewSprintClient(logger, dynamodbiface.DynamoDBAPI(dynamo)),
+	if len(strings.Split(dynamodbARN, "/")) < 2 {
+		return csa{}, errors.New("Invalid dynamodbARN")
 	}
+
+	return csa{
+		dbClient: dbclient.NewSprintClient(aws.String(strings.Split(dynamodbARN, "/")[1]), dynamodbiface.DynamoDBAPI(dynamo)),
+	}, nil
 }
 
 func (c csa) GetCsa(ctx context.Context, zipCode string) (entity.CsaResponse, error) {
-	c.logger.Info().Msgf("Getting Csa for zipcode: %s", zipCode)
+	zerolog.Ctx(ctx).Info().Msgf("Getting Csa for zipcode: %s", zipCode)
 
 	csa, err := c.dbClient.GetCsa(ctx, zipCode)
 	if err != nil {

@@ -3,6 +3,7 @@ package dbclient
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"bitbucket.org/credomobile/coverage/entity"
 	"github.com/aws/aws-sdk-go/aws"
@@ -21,10 +22,11 @@ type ClientFactory interface {
 }
 
 type clientFactoryImpl struct {
-	logger     *zerolog.Logger
+	tableName  *string
 	connection dynamodbiface.DynamoDBAPI
 }
 
+// NewDbClientFactory constructs and gives back a db client factory that can be used to retrieve carrier specfic db client.
 func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) (ClientFactory, error) {
 	//awsSession, err := session.NewSession()
 	config := &aws.Config{
@@ -38,18 +40,23 @@ func NewDbClientFactory(dynamodbARN string, logger *zerolog.Logger) (ClientFacto
 		return nil, err
 	}
 	dynamo := dynamodb.New(awsSession)
+
+	if len(strings.Split(dynamodbARN, "/")) < 2 {
+		return nil, errors.New("Invalid dynamodbARN")
+	}
+
 	return clientFactoryImpl{
+		tableName:  aws.String(strings.Split(dynamodbARN, "/")[1]),
 		connection: dynamodbiface.DynamoDBAPI(dynamo),
-		logger:     logger,
 	}, nil
 }
 
 func (c clientFactoryImpl) GetDbClient(t entity.CarrierType) (CoverageCheckClient, error) {
 	switch t {
 	case entity.Sprint:
-		return NewSprintClient(c.logger, c.connection), nil
+		return NewSprintClient(c.tableName, c.connection), nil
 	case entity.Verizon:
-		return NewVerizonClient(c.logger, c.connection), nil
+		return NewVerizonClient(c.tableName, c.connection), nil
 	default:
 		//if type is invalid, return an error
 		return nil, errors.New("Invalid Carrier Type")

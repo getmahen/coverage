@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"bitbucket.org/credomobile/coverage/entity"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -20,6 +19,7 @@ type SprintCsaDbClient interface {
 
 type sprintDbClient struct {
 	logger     *zerolog.Logger
+	tableName  *string
 	connection dynamodbiface.DynamoDBAPI
 }
 
@@ -42,12 +42,13 @@ type sprintCoverageData struct {
 	ZipCenterLat   string `json:"zip_center_lat"`
 }
 
-func NewSprintClient(logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) sprintDbClient {
-	return sprintDbClient{logger: logger, connection: connection}
+//NewSprintClient construts and returns Sprint's db client
+func NewSprintClient(tableName *string, connection dynamodbiface.DynamoDBAPI) sprintDbClient {
+	return sprintDbClient{tableName: tableName, connection: connection}
 }
 
 func (s sprintDbClient) VerifyCoverage(ctx context.Context, zipCode string) (bool, error) {
-	s.logger.Info().Msgf("*** IN SPRINT DB CLIENT VerifyCoverage() ***")
+	zerolog.Ctx(ctx).Info().Msgf("*** IN SPRINT DB CLIENT VerifyCoverage() ***")
 
 	data, err := s.getData(ctx, zipCode)
 	if err != nil {
@@ -57,12 +58,12 @@ func (s sprintDbClient) VerifyCoverage(ctx context.Context, zipCode string) (boo
 	fmt.Println("CurPctCov: ", data.CurPctCov)
 	fmt.Println("LTE4GPctCov: ", data.Lte4GPctCov)
 
-	covered := s.isZipCovered(zipCode, data)
+	covered := s.isZipCovered(ctx, zipCode, data)
 	return covered, nil
 }
 
 func (s sprintDbClient) GetCsa(ctx context.Context, zipCode string) (string, error) {
-	s.logger.Info().Msgf("*** IN SPRINT DB CLIENT GetCsa() for zipcode %s***", zipCode)
+	zerolog.Ctx(ctx).Info().Msgf("*** IN SPRINT DB CLIENT GetCsa() for zipcode %s***", zipCode)
 
 	data, err := s.getData(ctx, zipCode)
 	if err != nil {
@@ -73,16 +74,15 @@ func (s sprintDbClient) GetCsa(ctx context.Context, zipCode string) (string, err
 
 func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCoverageData, error) {
 	// Get cur_pct_cov and lte_4g_pctcov attributes
-	//filter := expression.Name("zipcode").Equal(expression.Value(zipCode)).And(expression.Name("carriertype").Equal(expression.Value("sprint")))
 	proj := expression.NamesList(expression.Name("zipcode"), expression.Name("carriertype"), expression.Name("csa_leaf"), expression.Name("cur_pct_cov"), expression.Name("lte_4g_pctcov"))
 	expr, err := expression.NewBuilder().WithProjection(proj).Build()
 	if err != nil {
-		s.logger.Error().Err(err).Msg("failed to build projection expression to query dynamodb table for Sprint coverage")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("failed to build projection expression to query dynamodb table for Sprint coverage")
 		return sprintCoverageData{}, err
 	}
 
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(entity.TableName),
+		TableName: s.tableName,
 		Key: map[string]*dynamodb.AttributeValue{
 			"zipcode": {
 				S: aws.String(zipCode),
@@ -97,19 +97,19 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 
 	result, err := s.connection.GetItemWithContext(ctx, input)
 	if err != nil {
-		s.logger.Error().Err(err).Msg("failed to query coverage dynamodb table")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("failed to query coverage dynamodb table")
 		return sprintCoverageData{}, err
 	}
 
 	item := sprintCoverageData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 	if err != nil {
-		s.logger.Error().Err(err).Msg("failed to UnmarshalMap Sprint coverage data from dynamodb")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("failed to UnmarshalMap Sprint coverage data from dynamodb")
 		return sprintCoverageData{}, err
 	}
 
 	if item.ZipCode == "" {
-		s.logger.Debug().Msgf("Could not find coverage data for zipcode: %s", zipCode)
+		zerolog.Ctx(ctx).Debug().Msgf("Could not find coverage data for zipcode: %s", zipCode)
 		return sprintCoverageData{}, nil
 	}
 
@@ -117,21 +117,21 @@ func (s sprintDbClient) getData(ctx context.Context, zipCode string) (sprintCove
 	// json.Unmarshal([]byte(item.JsonData), &data)
 	return item, nil
 }
-func (s sprintDbClient) isZipCovered(zipCode string, data sprintCoverageData) bool {
+func (s sprintDbClient) isZipCovered(ctx context.Context, zipCode string, data sprintCoverageData) bool {
 	if len(data.CurPctCov) == 0 || len(data.Lte4GPctCov) == 0 {
-		s.logger.Debug().Msgf("zipcode: %s not covered as either Cur_Pct_Cov, LTE_4G_PctCov fields are empty", zipCode)
+		zerolog.Ctx(ctx).Debug().Msgf("zipcode: %s not covered as either Cur_Pct_Cov, LTE_4G_PctCov fields are empty", zipCode)
 		return false
 	}
 
 	curPctCov, err := strconv.ParseFloat(data.CurPctCov, 64)
 	if err != nil {
-		s.logger.Error().Err(err).Msg("Illegal value in Cur_Pct_Cov")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("Illegal value in Cur_Pct_Cov")
 		return false
 	}
 
 	lTE4GPctCov, err := strconv.ParseFloat(data.Lte4GPctCov, 64)
 	if err != nil {
-		s.logger.Error().Err(err).Msg("Illegal value in LTE_4G_PctCov")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("Illegal value in LTE_4G_PctCov")
 		return false
 	}
 

@@ -3,7 +3,6 @@ package dbclient
 import (
 	"context"
 	"errors"
-	"os"
 	"reflect"
 	"testing"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
-	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -116,24 +114,26 @@ func TestVerizonVerifyCoverage(t *testing.T) {
 	}
 
 	for _, tC := range testCases {
-		logger := zerolog.New(os.Stdout).With().Logger()
+		tableName := aws.String("fakeCoverage")
 
 		fakeDb := &fakeVerizonDynamoDB{}
 		if tC.causeDynamoDbError {
 			fakeDb = &fakeVerizonDynamoDB{
 				t:               t,
+				tableName:       tableName,
 				payloadToReturn: tC.dynamodbReturnPayload,
 				err:             errors.New("fake DB error"),
 			}
 		} else {
 			fakeDb = &fakeVerizonDynamoDB{
 				t:               t,
+				tableName:       tableName,
 				payloadToReturn: tC.dynamodbReturnPayload,
 				err:             nil,
 			}
 		}
 
-		sprintdbClient := NewVerizonClient(&logger, fakeDb)
+		sprintdbClient := NewVerizonClient(tableName, fakeDb)
 		result, err := sprintdbClient.VerifyCoverage(context.Background(), tC.zipCode)
 
 		if tC.causeDynamoDbError {
@@ -150,6 +150,7 @@ func TestVerizonVerifyCoverage(t *testing.T) {
 
 type fakeVerizonDynamoDB struct {
 	dynamodbiface.DynamoDBAPI
+	tableName       *string
 	Keys            map[string]string
 	payloadToReturn map[string]string // Store fake return values
 	err             error
@@ -157,7 +158,7 @@ type fakeVerizonDynamoDB struct {
 }
 
 func (fd *fakeVerizonDynamoDB) GetItemWithContext(ctx aws.Context, input *dynamodb.GetItemInput, opts ...request.Option) (*dynamodb.GetItemOutput, error) {
-	assert.Equal(fd.t, "coverage", *input.TableName, "incorrect table name")
+	assert.Equal(fd.t, *fd.tableName, *input.TableName, "incorrect table name")
 
 	expectedAttributes := map[string]*string{
 		"#0": aws.String("zipcode"),

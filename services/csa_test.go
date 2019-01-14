@@ -14,20 +14,25 @@ import (
 
 func TestNewCsa(t *testing.T) {
 	logger := zerolog.New(os.Stdout).With().Logger()
-	csaService := NewCsa(&logger)
+	csaService, err := NewCsa("/fakeDyanamoDbArn", &logger)
 
+	assert.NoError(t, err)
 	assert.IsType(t, csa{}, csaService)
 	assert.Implements(t, (*dbclient.SprintCsaDbClient)(nil), csaService.dbClient)
 }
 
-func TestGetCsaHappyPathWithCsaFound(t *testing.T) {
+func TestNewCsaWithInvalidDynamodbArn(t *testing.T) {
 	logger := zerolog.New(os.Stdout).With().Logger()
+	_, err := NewCsa("fakeDyanamoDbArn", &logger)
 
+	assert.Error(t, err)
+}
+
+func TestGetCsaHappyPathWithCsaFound(t *testing.T) {
 	mockSprintCsaDbClient := mockSprintCsaDbClient{}
 	mockSprintCsaDbClient.On("GetCsa", mock.Anything, mock.Anything).Return("fakeCsa", nil)
 
 	csaService := csa{
-		logger:   &logger,
 		dbClient: mockSprintCsaDbClient,
 	}
 
@@ -41,13 +46,10 @@ func TestGetCsaHappyPathWithCsaFound(t *testing.T) {
 }
 
 func TestGetCsaHappyPathWithCsaNotFound(t *testing.T) {
-	logger := zerolog.New(os.Stdout).With().Logger()
-
 	mockSprintCsaDbClient := mockSprintCsaDbClient{}
 	mockSprintCsaDbClient.On("GetCsa", mock.Anything, mock.Anything).Return("", nil)
 
 	csaService := csa{
-		logger:   &logger,
 		dbClient: mockSprintCsaDbClient,
 	}
 
@@ -61,13 +63,10 @@ func TestGetCsaHappyPathWithCsaNotFound(t *testing.T) {
 }
 
 func TestGetCsaWithDbClientError(t *testing.T) {
-	logger := zerolog.New(os.Stdout).With().Logger()
-
 	mockSprintCsaDbClient := mockSprintCsaDbClient{}
 	mockSprintCsaDbClient.On("GetCsa", mock.Anything, mock.Anything).Return("", errors.New("Fake Db error"))
 
 	csaService := csa{
-		logger:   &logger,
 		dbClient: mockSprintCsaDbClient,
 	}
 

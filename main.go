@@ -15,7 +15,7 @@ import (
 
 type Config struct {
 	frink.BaseConfig
-	DynamoDBHistoryArn string `env:"DYNAMODB_HISTORY_ARN"`
+	DynamoDBArn string `env:"DYNAMODB_ARN"`
 }
 
 var initialized = false
@@ -35,25 +35,20 @@ func Handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse,
 			app.Logger.Fatal().Err(err).Msg("unable to configure application")
 		}
 
-		coverageCheckValidator := validators.NewCoverageCheckValidator()
-		csaValidator := validators.NewCsaValidator()
-
-		//** ORIGINAL CODE
-		//coverageCheckService := services.NewCoverageCheck(config.DynamoDBHistoryArn, app.Logger)
-
-		//WITH FACTORY PATTERN
-		dbclientFactory, err := dbclient.NewDbClientFactory(config.DynamoDBHistoryArn, app.Logger)
+		dbclientFactory, err := dbclient.NewDbClientFactory(config.DynamoDBArn, app.Logger)
 		if err != nil {
 			app.Logger.Fatal().Err(err).Msg("unable to configure Db Client")
 		}
 
 		coverageCheckService := services.NewCoverageCheck(dbclientFactory)
 
-		////** ORIGINAL CODE
-		//csaService := services.NewCsa(config.DynamoDBHistoryArn, app.Logger)
+		csaService, err := services.NewCsa(config.DynamoDBArn, app.Logger)
+		if err != nil {
+			app.Logger.Fatal().Err(err).Msg("unable to configure Csa service")
+		}
 
-		//With DBClient dependency
-		csaService := services.NewCsa(app.Logger)
+		coverageCheckValidator := validators.NewCoverageCheckValidator()
+		csaValidator := validators.NewCsaValidator()
 
 		app.Router.Get("/v1/coveragecheck", handlers.CheckCoverage(coverageCheckValidator, coverageCheckService))
 		app.Router.Get("/v1/csa", handlers.GetCsa(csaValidator, csaService))

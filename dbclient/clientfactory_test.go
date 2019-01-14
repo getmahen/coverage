@@ -5,14 +5,29 @@ import (
 	"testing"
 
 	"bitbucket.org/credomobile/coverage/entity"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetDbClientForSprint(t *testing.T) {
+func TestNewDbClientFactory(t *testing.T) {
 	logger := zerolog.New(os.Stdout).With().Logger()
-	dbClientFactory := clientFactoryImpl{connection: &fakeDynamoDB{}, logger: &logger}
+	dbClientFactory, err := NewDbClientFactory("abc/fakeDyanamoDbArn", &logger)
+
+	assert.NoError(t, err)
+	assert.Implements(t, (*ClientFactory)(nil), dbClientFactory)
+}
+
+func TestNewDbClientFactoryForInvalidDynamodbArn(t *testing.T) {
+	logger := zerolog.New(os.Stdout).With().Logger()
+	_, err := NewDbClientFactory("fakeDyanamoDbArn", &logger)
+
+	assert.Error(t, err)
+}
+
+func TestGetDbClientForSprint(t *testing.T) {
+	dbClientFactory := clientFactoryImpl{tableName: aws.String("fakeCoverage"), connection: &fakeDynamoDB{}}
 
 	//Sprint Db Client
 	dbClient, err := dbClientFactory.GetDbClient(entity.CarrierType("1"))
@@ -21,8 +36,7 @@ func TestGetDbClientForSprint(t *testing.T) {
 }
 
 func TestGetDbClientForVerizon(t *testing.T) {
-	logger := zerolog.New(os.Stdout).With().Logger()
-	dbClientFactory := clientFactoryImpl{connection: &fakeDynamoDB{}, logger: &logger}
+	dbClientFactory := clientFactoryImpl{tableName: aws.String("fakeCoverage"), connection: &fakeDynamoDB{}}
 
 	//Verizon Db Client
 	dbClient, err := dbClientFactory.GetDbClient(entity.CarrierType("2"))
@@ -31,8 +45,7 @@ func TestGetDbClientForVerizon(t *testing.T) {
 }
 
 func TestGetDbClientForInvalidCarrierID(t *testing.T) {
-	logger := zerolog.New(os.Stdout).With().Logger()
-	dbClientFactory := clientFactoryImpl{connection: &fakeDynamoDB{}, logger: &logger}
+	dbClientFactory := clientFactoryImpl{tableName: aws.String("fakeCoverage"), connection: &fakeDynamoDB{}}
 
 	//Verizon Db Client
 	dbClient, err := dbClientFactory.GetDbClient(entity.CarrierType("5"))

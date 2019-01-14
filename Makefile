@@ -14,7 +14,7 @@ BASE_ENV_VALS := ENVIRONMENT="LOCAL_DEV" \
 		LISTEN_IP=127.0.0.1 \
 		NOMAD_PORT_http=3999 \
 		LOG_LEVEL="debug" \
-		DYNAMODB_HISTORY_ARN="http://localhost:8000" \
+		DYNAMODB_ARN="arn:aws:dynamodb:us-east-2:674346455231:table/coverage" \
 		AWS_REGION="us-east-2"
 
 .PHONY: test

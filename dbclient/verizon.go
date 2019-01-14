@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"bitbucket.org/credomobile/coverage/entity"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -15,6 +14,7 @@ import (
 
 type verizonDbClient struct {
 	logger     *zerolog.Logger
+	tableName  *string
 	connection dynamodbiface.DynamoDBAPI
 }
 
@@ -42,22 +42,23 @@ type verizonCoverageData struct {
 	MsaRsaName      string `json:"msarsaname"`
 }
 
-func NewVerizonClient(logger *zerolog.Logger, connection dynamodbiface.DynamoDBAPI) verizonDbClient {
-	return verizonDbClient{logger: logger, connection: connection}
+//NewVerizonClient construts and returns Verizon's db client
+func NewVerizonClient(tableName *string, connection dynamodbiface.DynamoDBAPI) verizonDbClient {
+	return verizonDbClient{tableName: tableName, connection: connection}
 }
 
 func (v verizonDbClient) VerifyCoverage(ctx context.Context, zipCode string) (bool, error) {
-	v.logger.Info().Msgf("*** IN VERIZON DB CLIENT ***")
+	zerolog.Ctx(ctx).Info().Msg("*** IN VERIZON DB CLIENT ***")
 
 	proj := expression.NamesList(expression.Name("zipcode"), expression.Name("carriertype"), expression.Name("vzelte"), expression.Name("vze_lte_ind"), expression.Name("state"))
 	expr, err := expression.NewBuilder().WithProjection(proj).Build()
 	if err != nil {
-		v.logger.Error().Err(err).Msg("failed to build projection expression to query dynamodb table for Verizon coverage")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("failed to build projection expression to query dynamodb table for Verizon coverage")
 		return false, err
 	}
 
 	input := &dynamodb.GetItemInput{
-		TableName: aws.String(entity.TableName),
+		TableName: v.tableName,
 		Key: map[string]*dynamodb.AttributeValue{
 			"zipcode": {
 				S: aws.String(zipCode),
@@ -72,35 +73,35 @@ func (v verizonDbClient) VerifyCoverage(ctx context.Context, zipCode string) (bo
 
 	result, err := v.connection.GetItemWithContext(ctx, input)
 	if err != nil {
-		v.logger.Error().Err(err).Msg("failed to query dynamodb")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("failed to query dynamodb")
 		return false, err
 	}
 
 	item := verizonCoverageData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &item)
 	if err != nil {
-		v.logger.Error().Err(err).Msg("failed to UnmarshalMap Verizon coverage data from dynamodb")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("failed to UnmarshalMap Verizon coverage data from dynamodb")
 		return false, err
 	}
 
 	if item.ZipCode == "" {
-		v.logger.Debug().Msgf("Could not find coverage for zipcode: %s", zipCode)
+		zerolog.Ctx(ctx).Debug().Msgf("Could not find coverage for zipcode: %s", zipCode)
 		return false, nil
 	}
 
-	covered := v.isZipCovered(zipCode, item)
+	covered := v.isZipCovered(ctx, zipCode, item)
 	return covered, nil
 }
 
-func (v verizonDbClient) isZipCovered(zipCode string, data verizonCoverageData) bool {
+func (v verizonDbClient) isZipCovered(ctx context.Context, zipCode string, data verizonCoverageData) bool {
 	if len(data.VzwLte) == 0 || len(data.VzwLteInd) == 0 || len(data.State) == 0 {
-		v.logger.Debug().Msgf("zipcode: %s not covered as either vzwlte, vzw_lte_ind or state fields are empty", zipCode)
+		zerolog.Ctx(ctx).Debug().Msgf("zipcode: %s not covered as either vzwlte, vzw_lte_ind or state fields are empty", zipCode)
 		return false
 	}
 
 	vzwlte, err := strconv.ParseFloat(data.VzwLte, 64)
 	if err != nil {
-		v.logger.Error().Err(err).Msg("Illegal value in vzwlte")
+		zerolog.Ctx(ctx).Error().Err(err).Msg("Illegal value in vzwlte")
 		return false
 	}
 	if vzwlte > 50 && data.VzwLteInd == "Y" {
